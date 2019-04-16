@@ -24,4 +24,4 @@ class preprocess:
                 message_modified.append(word)
         return ' '.join(message_modified)
 trial=preprocess()
-print(trial.preprocess("tomorrow, is my birthday!! ,after that i am going to sleep:)"))
+print(trial.preprocess("customers purchased more between date1 and date2"))
