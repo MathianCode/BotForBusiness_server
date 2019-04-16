@@ -2,8 +2,17 @@ import sys
 import collections
 from pymongo import MongoClient
 import math
+from service import ParamDetection
+from service import NumberDetection
 import dateparser
 from dateparser.search import search_dates
+import spacy
+from spacy import displacy
+from collections import Counter
+import en_core_web_sm
+# import en_core_web_md
+# import en_core_web_lg
+nlp = en_core_web_sm.load()
 if '/Users/naveen-pt2724/project/common' not in sys.path:
     sys.path.insert(0, '/Users/naveen-pt2724/project/common')
 import exceptions
@@ -36,11 +45,12 @@ class ActionDetection:
             for i in range(0,len(data_dict["actions"])):
                 gather=list()
                 isstring=list()
-                self.ActionNames.append(data_dict["actions"][i]["name"])
-                self.ParamsNeeded.append(data_dict["actions"][i]["param_def"])
-                for j in range(0,len(data_dict["actions"][i]["sentence_def"])):
-                    gather.append(data_dict["actions"][i]["sentence_def"][j]["sentence"])
-                    isstring.append(data_dict["actions"][i]["sentence_def"][j]["isstring"])
+                if(len(data_dict["actions"])!=0):
+                    self.ActionNames.append(data_dict["actions"][i]["name"])
+                    self.ParamsNeeded.append(data_dict["actions"][i]["param_def"])
+                    for j in range(0,len(data_dict["actions"][i]["sentence_def"])):
+                        gather.append(data_dict["actions"][i]["sentence_def"][j]["sentence"].strip())
+                        isstring.append(data_dict["actions"][i]["sentence_def"][j]["isstring"])
                 SampleSentences.append(gather)
                 self.IsString.append(isstring)
             print(SampleSentences)
@@ -112,7 +122,16 @@ class ActionDetection:
            self.contexts.setActionDetected(self.ActionNames[pos])
            self.contexts.setParamsNeeded(self.ParamsNeeded[pos])
            self.contexts.setSampleSentences(self.DBSentences[pos])
+           self.contexts.setParamsPosition(self.IsString[pos])
+           found = [False]*len(self.ParamsNeeded[pos])
+           value = [0]*len(self.ParamsNeeded[pos])
+           self.contexts.setParamsValue(value)
+           self.contexts.setParamsFound(found)
            print("Action detected is : "+self.ActionNames[pos])
+           findParams = ParamDetection.paramDetection()
+           findParams.DetectDates(sentence)
+           findParams = NumberDetection.NumberDetection()
+           findParams.detectNumber(sentence)
        else:
            print("Sorry!! cannot understand")
            raise exceptions.ActionNotFound("Action Not Found")
